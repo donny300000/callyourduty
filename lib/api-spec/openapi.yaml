@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: users
+    description: User identity
+  - name: groups
+    description: Friend groups
+  - name: logs
+    description: Poop logs
 paths:
   /healthz:
     get:
@@ -24,6 +30,260 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /users:
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create or claim a user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{userId}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Not found
+
+  /users/{userId}/summary:
+    get:
+      operationId: getUserSummary
+      tags: [users]
+      summary: Get a user's personal stats summary
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSummary"
+
+  /groups:
+    get:
+      operationId: listGroups
+      tags: [groups]
+      summary: List groups a user belongs to
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+    post:
+      operationId: createGroup
+      tags: [groups]
+      summary: Create a new group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+
+  /groups/join:
+    post:
+      operationId: joinGroup
+      tags: [groups]
+      summary: Join a group via invite code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupJoinInput"
+      responses:
+        "200":
+          description: Joined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "404":
+          description: Invalid invite code
+
+  /groups/{groupId}:
+    get:
+      operationId: getGroup
+      tags: [groups]
+      summary: Get group detail with members
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupDetail"
+        "404":
+          description: Not found
+
+  /groups/{groupId}/logs:
+    get:
+      operationId: listGroupLogs
+      tags: [groups]
+      summary: List all logs posted by group members
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PoopLog"
+
+  /groups/{groupId}/leaderboard:
+    get:
+      operationId: getGroupLeaderboard
+      tags: [groups]
+      summary: Get aggregated per-member stats for a group
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  /logs:
+    get:
+      operationId: listLogs
+      tags: [logs]
+      summary: List a user's own poop logs
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PoopLog"
+    post:
+      operationId: createLog
+      tags: [logs]
+      summary: Create a new poop log
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PoopLogInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoopLog"
+
+  /logs/{logId}:
+    get:
+      operationId: getLog
+      tags: [logs]
+      summary: Get a single poop log
+      parameters:
+        - name: logId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoopLog"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteLog
+      tags: [logs]
+      summary: Delete a poop log
+      parameters:
+        - name: logId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +294,124 @@ components:
       required:
         - status
 
+    User:
+      type: object
+      required: [id, name, avatarColor, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        avatarColor: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    UserInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 40 }
+
+    UserSummary:
+      type: object
+      required: [totalLogs, averageOverall, longestStreakDays, favoriteSpot, groupCount]
+      properties:
+        totalLogs: { type: integer }
+        averageOverall: { type: ["number", "null"] }
+        longestStreakDays: { type: integer }
+        favoriteSpot: { type: ["string", "null"] }
+        groupCount: { type: integer }
+
+    Group:
+      type: object
+      required: [id, name, inviteCode, memberCount, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        inviteCode: { type: string }
+        memberCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+
+    GroupInput:
+      type: object
+      required: [name, userId]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 40 }
+        userId: { type: string }
+
+    GroupJoinInput:
+      type: object
+      required: [inviteCode, userId]
+      properties:
+        inviteCode: { type: string }
+        userId: { type: string }
+
+    GroupMember:
+      type: object
+      required: [id, name, avatarColor, joinedAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        avatarColor: { type: string }
+        joinedAt: { type: string, format: date-time }
+
+    GroupDetail:
+      type: object
+      required: [id, name, inviteCode, createdAt, members]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        inviteCode: { type: string }
+        createdAt: { type: string, format: date-time }
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupMember"
+
+    LeaderboardEntry:
+      type: object
+      required: [userId, name, avatarColor, totalLogs, averageOverall]
+      properties:
+        userId: { type: string }
+        name: { type: string }
+        avatarColor: { type: string }
+        totalLogs: { type: integer }
+        averageOverall: { type: ["number", "null"] }
+
+    RatingInput:
+      type: object
+      required: [speed, comfort, privacy, ambiance, relief]
+      properties:
+        speed: { type: integer, minimum: 1, maximum: 5 }
+        comfort: { type: integer, minimum: 1, maximum: 5 }
+        privacy: { type: integer, minimum: 1, maximum: 5 }
+        ambiance: { type: integer, minimum: 1, maximum: 5 }
+        relief: { type: integer, minimum: 1, maximum: 5 }
+
+    PoopLogInput:
+      type: object
+      required: [userId, lat, lng, ratings]
+      properties:
+        userId: { type: string }
+        groupId: { type: ["string", "null"] }
+        lat: { type: number }
+        lng: { type: number }
+        locationName: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        ratings:
+          $ref: "#/components/schemas/RatingInput"
+
+    PoopLog:
+      type: object
+      required: [id, userId, userName, avatarColor, groupId, lat, lng, locationName, notes, ratings, overallScore, createdAt]
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        userName: { type: string }
+        avatarColor: { type: string }
+        groupId: { type: ["string", "null"] }
+        lat: { type: number }
+        lng: { type: number }
+        locationName: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        ratings:
+          $ref: "#/components/schemas/RatingInput"
+        overallScore: { type: number }
+        createdAt: { type: string, format: date-time }

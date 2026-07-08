@@ -1,0 +1,2 @@
+- [react-leaflet + React 19](react-leaflet-react19.md) — use react-leaflet@5, not @4, or peer-dep/module-resolution errors occur.
+- [Tailwind v4 @import ordering](tailwind-css-import-order.md) — all @import statements (incl. Google Fonts) must precede other CSS rules or vite postcss build fails.
