@@ -47,3 +47,12 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+secrets.json
+credentials.json
+.claude/settings.local.json
