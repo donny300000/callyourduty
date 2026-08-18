@@ -2,7 +2,6 @@ import { Router, type IRouter } from "express";
 import { eq, inArray } from "drizzle-orm";
 import { db, groupsTable, groupMembersTable, usersTable, poopLogsTable } from "@workspace/db";
 import {
-  ListGroupsQueryParams,
   ListGroupsResponse,
   CreateGroupBody,
   CreateGroupResponse,
@@ -20,16 +19,10 @@ import { generateInviteCode } from "../lib/poopHelpers";
 const router: IRouter = Router();
 
 router.get("/groups", async (req, res): Promise<void> => {
-  const query = ListGroupsQueryParams.safeParse(req.query);
-  if (!query.success) {
-    res.status(400).json({ error: query.error.message });
-    return;
-  }
-
   const memberships = await db
     .select()
     .from(groupMembersTable)
-    .where(eq(groupMembersTable.userId, query.data.userId));
+    .where(eq(groupMembersTable.userId, req.userId));
 
   if (memberships.length === 0) {
     res.json(ListGroupsResponse.parse([]));
@@ -61,12 +54,6 @@ router.post("/groups", async (req, res): Promise<void> => {
     return;
   }
 
-  const [owner] = await db.select().from(usersTable).where(eq(usersTable.id, parsed.data.userId));
-  if (!owner) {
-    res.status(404).json({ error: "User not found" });
-    return;
-  }
-
   let inviteCode = generateInviteCode();
   for (let attempts = 0; attempts < 5; attempts++) {
     const [existing] = await db.select().from(groupsTable).where(eq(groupsTable.inviteCode, inviteCode));
@@ -79,7 +66,7 @@ router.post("/groups", async (req, res): Promise<void> => {
     .values({ name: parsed.data.name, inviteCode })
     .returning();
 
-  await db.insert(groupMembersTable).values({ groupId: group!.id, userId: parsed.data.userId });
+  await db.insert(groupMembersTable).values({ groupId: group!.id, userId: req.userId });
 
   res.status(201).json(CreateGroupResponse.parse({ ...group, memberCount: 1 }));
 });
@@ -106,9 +93,9 @@ router.post("/groups/join", async (req, res): Promise<void> => {
     .from(groupMembersTable)
     .where(eq(groupMembersTable.groupId, group.id));
 
-  const alreadyMember = existingMemberships.some((m) => m.userId === parsed.data.userId);
+  const alreadyMember = existingMemberships.some((m) => m.userId === req.userId);
   if (!alreadyMember) {
-    await db.insert(groupMembersTable).values({ groupId: group.id, userId: parsed.data.userId });
+    await db.insert(groupMembersTable).values({ groupId: group.id, userId: req.userId });
   }
 
   const memberCount = alreadyMember ? existingMemberships.length : existingMemberships.length + 1;

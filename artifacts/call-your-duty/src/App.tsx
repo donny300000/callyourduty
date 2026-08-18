@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -6,6 +7,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { Layout } from "@/components/layout";
 
 import Onboarding from "@/pages/onboarding";
+import Login from "@/pages/login";
 import MapPage from "@/pages/map";
 import LogFeed from "@/pages/log-feed";
 import Groups from "@/pages/groups";
@@ -22,11 +24,25 @@ const queryClient = new QueryClient({
   },
 });
 
+function AuthGate() {
+  const [mode, setMode] = useState<"signup" | "login">("signup");
+
+  if (mode === "login") {
+    return <Login onSwitchToSignup={() => setMode("signup")} />;
+  }
+
+  return <Onboarding onSwitchToLogin={() => setMode("login")} />;
+}
+
 function ProtectedRoutes() {
-  const { userId } = useAuth();
-  
-  if (!userId) {
-    return <Onboarding />;
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (!user) {
+    return <AuthGate />;
   }
 
   return (

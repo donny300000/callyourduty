@@ -57,6 +57,11 @@ export default defineConfig({
       prettier: true,
       override: {
         zod: {
+          // `lib/api-zod`'s package.json pins zod via `catalog:`, which Orval's
+          // version auto-detection can't parse as a semver — it then silently
+          // defaults to Zod 4 output (e.g. top-level `zod.email()`), which
+          // doesn't exist on the zod v3 package actually installed here.
+          version: 3,
           coerce: {
             query: ['boolean', 'number', 'string'],
             param: ['boolean', 'number', 'string'],

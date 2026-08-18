@@ -1,20 +1,17 @@
 import { useAuth } from "@/lib/auth";
-import { useGetUserSummary, useGetUser, useHealthCheck } from "@workspace/api-client-react";
+import { useGetUserSummary, useHealthCheck } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Droplet, Flame, MapPin, Users, Activity } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 
 export default function Profile() {
-  const { userId, logout } = useAuth();
-  const queryClient = useQueryClient();
-  const { data: user, isLoading: loadingUser } = useGetUser(userId!);
-  const { data: summary, isLoading: loadingSummary } = useGetUserSummary(userId!);
+  const { user, logout } = useAuth();
+  const loadingUser = !user;
+  const { data: summary, isLoading: loadingSummary } = useGetUserSummary(user!.id);
   const { data: health } = useHealthCheck();
 
   const handleLogout = () => {
-    queryClient.clear();
     logout();
   };
 
@@ -43,7 +40,7 @@ export default function Profile() {
             ) : (
               <h2 className="text-3xl font-bold">{user?.name}</h2>
             )}
-            <p className="text-muted-foreground font-mono text-sm">ID: {userId?.slice(0, 8)}...</p>
+            <p className="text-muted-foreground font-mono text-sm">ID: {user?.id?.slice(0, 8)}...</p>
           </div>
           <Button variant="outline" onClick={handleLogout} className="shrink-0 font-bold border-2">
             Discharge

@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ListLogsParams = {
-userId: string;
-};
+export interface LoginInput {
+  email: string;
+  /** @minLength 4 */
+  password: string;
+}

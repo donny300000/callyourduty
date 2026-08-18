@@ -12,16 +12,26 @@ export interface HealthStatus {
 export interface User {
   id: string;
   name: string;
+  email: string;
   avatarColor: string;
   createdAt: string;
 }
 
-export interface UserInput {
+export interface SignupInput {
   /**
      * @minLength 1
      * @maxLength 40
      */
   name: string;
+  email: string;
+  /** @minLength 4 */
+  password: string;
+}
+
+export interface LoginInput {
+  email: string;
+  /** @minLength 4 */
+  password: string;
 }
 
 export interface UserSummary {
@@ -48,12 +58,10 @@ export interface GroupInput {
      * @maxLength 40
      */
   name: string;
-  userId: string;
 }
 
 export interface GroupJoinInput {
   inviteCode: string;
-  userId: string;
 }
 
 export interface GroupMember {
@@ -109,7 +117,6 @@ export interface RatingInput {
 }
 
 export interface PoopLogInput {
-  userId: string;
   /** @nullable */
   groupId?: string | null;
   lat: number;
@@ -138,12 +145,4 @@ export interface PoopLog {
   overallScore: number;
   createdAt: string;
 }
-
-export type ListGroupsParams = {
-userId: string;
-};
-
-export type ListLogsParams = {
-userId: string;
-};
 

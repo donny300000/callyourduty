@@ -8,7 +8,6 @@
 import type { RatingInput } from './ratingInput';
 
 export interface PoopLogInput {
-  userId: string;
   /** @nullable */
   groupId?: string | null;
   lat: number;

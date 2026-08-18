@@ -1,34 +1,32 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSignup, getGetCurrentUserQueryKey } from "@workspace/api-client-react";
+import { useLogin, getGetCurrentUserQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Droplet } from "lucide-react";
 
-export default function Onboarding({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
-  const [name, setName] = useState("");
+export default function Login({ onSwitchToSignup }: { onSwitchToSignup: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const signup = useSignup();
+  const login = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || password.length < 4) return;
+    if (!email.trim() || password.length < 4) return;
 
-    signup.mutate(
-      { data: { name, email, password } },
+    login.mutate(
+      { data: { email, password } },
       {
         onSuccess: (user) => {
           queryClient.setQueryData(getGetCurrentUserQueryKey(), user);
         },
-        onError: (err: any) => {
-          const isConflict = err?.status === 409;
+        onError: () => {
           toast({
-            title: "Failed to enter",
-            description: isConflict ? "That email is already registered." : "Something went wrong. Try again.",
+            title: "Login failed",
+            description: "Invalid email or password.",
             variant: "destructive",
           });
         },
@@ -44,21 +42,10 @@ export default function Onboarding({ onSwitchToLogin }: { onSwitchToLogin: () =>
             <Droplet size={48} className="text-primary-foreground" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight">Call Your Duty</h1>
-          <p className="text-lg text-muted-foreground">The most important log you'll ever keep.</p>
+          <p className="text-lg text-muted-foreground">Welcome back, operative.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="w-full space-y-4 bg-card p-6 sm:p-8 rounded-3xl border border-card-border shadow-xl">
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-bold text-foreground uppercase tracking-wider">Choose a Codename</label>
-            <Input
-              id="name"
-              placeholder="e.g. The Phantom Pooper"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="h-14 text-lg bg-background border-2 focus-visible:ring-primary"
-              disabled={signup.isPending}
-            />
-          </div>
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-bold text-foreground uppercase tracking-wider">Email</label>
             <Input
@@ -68,7 +55,7 @@ export default function Onboarding({ onSwitchToLogin }: { onSwitchToLogin: () =>
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-14 text-lg bg-background border-2 focus-visible:ring-primary"
-              disabled={signup.isPending}
+              disabled={login.isPending}
             />
           </div>
           <div className="space-y-2">
@@ -80,22 +67,22 @@ export default function Onboarding({ onSwitchToLogin }: { onSwitchToLogin: () =>
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-14 text-lg bg-background border-2 focus-visible:ring-primary"
-              disabled={signup.isPending}
+              disabled={login.isPending}
             />
           </div>
           <Button
             type="submit"
             className="w-full h-14 text-lg font-bold rounded-2xl hover-elevate shadow-md"
-            disabled={!name.trim() || !email.trim() || password.length < 4 || signup.isPending}
+            disabled={!email.trim() || password.length < 4 || login.isPending}
           >
-            {signup.isPending ? "Entering..." : "Deploy"}
+            {login.isPending ? "Logging in..." : "Log In"}
           </Button>
           <button
             type="button"
-            onClick={onSwitchToLogin}
+            onClick={onSwitchToSignup}
             className="w-full text-center text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            Already have an account? Log in
+            Need an account? Sign up
           </button>
         </form>
       </div>

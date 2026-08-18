@@ -8,5 +8,4 @@
 
 export interface GroupJoinInput {
   inviteCode: string;
-  userId: string;
 }

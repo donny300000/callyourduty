@@ -6,10 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface UserInput {
+export interface SignupInput {
   /**
      * @minLength 1
      * @maxLength 40
      */
   name: string;
+  email: string;
+  /** @minLength 4 */
+  password: string;
 }

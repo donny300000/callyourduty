@@ -1,15 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
 import { db, poopLogsTable, usersTable } from "@workspace/db";
-import {
-  ListLogsQueryParams,
-  ListLogsResponse,
-  CreateLogBody,
-  CreateLogResponse,
-  GetLogParams,
-  GetLogResponse,
-  DeleteLogParams,
-} from "@workspace/api-zod";
+import { ListLogsResponse, CreateLogBody, CreateLogResponse, GetLogParams, GetLogResponse, DeleteLogParams } from "@workspace/api-zod";
 import { computeOverallScore } from "../lib/poopHelpers";
 
 const router: IRouter = Router();
@@ -38,18 +30,12 @@ function serializeLog(log: typeof poopLogsTable.$inferSelect, userName: string, 
 }
 
 router.get("/logs", async (req, res): Promise<void> => {
-  const query = ListLogsQueryParams.safeParse(req.query);
-  if (!query.success) {
-    res.status(400).json({ error: query.error.message });
-    return;
-  }
-
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, query.data.userId));
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.userId));
 
   const logs = await db
     .select()
     .from(poopLogsTable)
-    .where(eq(poopLogsTable.userId, query.data.userId))
+    .where(eq(poopLogsTable.userId, req.userId))
     .orderBy(poopLogsTable.createdAt);
 
   const result = logs
@@ -67,7 +53,7 @@ router.post("/logs", async (req, res): Promise<void> => {
     return;
   }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, parsed.data.userId));
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.userId));
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
@@ -78,7 +64,7 @@ router.post("/logs", async (req, res): Promise<void> => {
   const [log] = await db
     .insert(poopLogsTable)
     .values({
-      userId: parsed.data.userId,
+      userId: req.userId,
       groupId: parsed.data.groupId ?? null,
       lat: parsed.data.lat,
       lng: parsed.data.lng,

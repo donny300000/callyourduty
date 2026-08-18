@@ -1,13 +1,10 @@
-import { useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { useListLogs } from "@workspace/api-client-react";
 import { LogCard } from "@/components/log-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { History, Inbox } from "lucide-react";
 
 export default function LogFeed() {
-  const { userId } = useAuth();
-  const { data: logs, isLoading } = useListLogs({ userId: userId! });
+  const { data: logs, isLoading } = useListLogs();
 
   return (
     <div className="flex flex-col w-full min-h-full">

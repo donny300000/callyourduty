@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "@/lib/auth";
 import { useListGroups, useCreateGroup, useJoinGroup, getListGroupsQueryKey } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,8 +11,7 @@ import { Users, Plus, KeyRound, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function Groups() {
-  const { userId } = useAuth();
-  const { data: groups, isLoading } = useListGroups({ userId: userId! });
+  const { data: groups, isLoading } = useListGroups();
 
   return (
     <div className="flex flex-col w-full min-h-full">
@@ -65,7 +63,6 @@ export default function Groups() {
 }
 
 function CreateGroupDialog() {
-  const { userId } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -76,9 +73,9 @@ function CreateGroupDialog() {
     e.preventDefault();
     if (!name.trim()) return;
 
-    createGroup.mutate({ data: { name, userId: userId! } }, {
+    createGroup.mutate({ data: { name } }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListGroupsQueryKey({ userId: userId! }) });
+        queryClient.invalidateQueries({ queryKey: getListGroupsQueryKey() });
         setOpen(false);
         setName("");
         toast({ title: "Squad created!", variant: "default" });
@@ -120,7 +117,6 @@ function CreateGroupDialog() {
 }
 
 function JoinGroupDialog() {
-  const { userId } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -131,9 +127,9 @@ function JoinGroupDialog() {
     e.preventDefault();
     if (!code.trim()) return;
 
-    joinGroup.mutate({ data: { inviteCode: code.toUpperCase(), userId: userId! } }, {
+    joinGroup.mutate({ data: { inviteCode: code.toUpperCase() } }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListGroupsQueryKey({ userId: userId! }) });
+        queryClient.invalidateQueries({ queryKey: getListGroupsQueryKey() });
         setOpen(false);
         setCode("");
         toast({ title: "Joined squad!", variant: "default" });

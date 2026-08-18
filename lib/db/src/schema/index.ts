@@ -2,3 +2,4 @@ export * from "./users";
 export * from "./groups";
 export * from "./groupMembers";
 export * from "./poopLogs";
+export * from "./sessions";

@@ -1,32 +1,10 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
 import { db, usersTable, groupMembersTable, poopLogsTable } from "@workspace/db";
-import {
-  CreateUserBody,
-  CreateUserResponse,
-  GetUserParams,
-  GetUserResponse,
-  GetUserSummaryParams,
-  GetUserSummaryResponse,
-} from "@workspace/api-zod";
-import { randomAvatarColor, computeLongestStreakDays } from "../lib/poopHelpers";
+import { GetUserParams, GetUserResponse, GetUserSummaryParams, GetUserSummaryResponse } from "@workspace/api-zod";
+import { computeLongestStreakDays } from "../lib/poopHelpers";
 
 const router: IRouter = Router();
-
-router.post("/users", async (req, res): Promise<void> => {
-  const parsed = CreateUserBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-
-  const [user] = await db
-    .insert(usersTable)
-    .values({ name: parsed.data.name, avatarColor: randomAvatarColor() })
-    .returning();
-
-  res.status(201).json(CreateUserResponse.parse(user));
-});
 
 router.get("/users/:userId", async (req, res): Promise<void> => {
   const params = GetUserParams.safeParse(req.params);

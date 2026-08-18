@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
   - name: users
     description: User identity
   - name: groups
@@ -31,17 +33,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
-  /users:
+  /auth/signup:
     post:
-      operationId: createUser
-      tags: [users]
-      summary: Create or claim a user profile
+      operationId: signup
+      tags: [auth]
+      summary: Create an account and start a session
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserInput"
+              $ref: "#/components/schemas/SignupInput"
       responses:
         "201":
           description: Created
@@ -49,6 +51,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+        "409":
+          description: Email already in use
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in and start a session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Invalid email or password
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: End the current session
+      responses:
+        "204":
+          description: Logged out
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get the currently authenticated user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
 
   /users/{userId}:
     get:
@@ -94,13 +143,7 @@ paths:
     get:
       operationId: listGroups
       tags: [groups]
-      summary: List groups a user belongs to
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: string
+      summary: List groups the current user belongs to
       responses:
         "200":
           description: OK
@@ -216,13 +259,7 @@ paths:
     get:
       operationId: listLogs
       tags: [logs]
-      summary: List a user's own poop logs
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: string
+      summary: List the current user's own poop logs
       responses:
         "200":
           description: OK
@@ -296,18 +333,28 @@ components:
 
     User:
       type: object
-      required: [id, name, avatarColor, createdAt]
+      required: [id, name, email, avatarColor, createdAt]
       properties:
         id: { type: string }
         name: { type: string }
+        email: { type: string, format: email }
         avatarColor: { type: string }
         createdAt: { type: string, format: date-time }
 
-    UserInput:
+    SignupInput:
       type: object
-      required: [name]
+      required: [name, email, password]
       properties:
         name: { type: string, minLength: 1, maxLength: 40 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 4 }
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 4 }
 
     UserSummary:
       type: object
@@ -331,17 +378,15 @@ components:
 
     GroupInput:
       type: object
-      required: [name, userId]
+      required: [name]
       properties:
         name: { type: string, minLength: 1, maxLength: 40 }
-        userId: { type: string }
 
     GroupJoinInput:
       type: object
-      required: [inviteCode, userId]
+      required: [inviteCode]
       properties:
         inviteCode: { type: string }
-        userId: { type: string }
 
     GroupMember:
       type: object
@@ -387,9 +432,8 @@ components:
 
     PoopLogInput:
       type: object
-      required: [userId, lat, lng, ratings]
+      required: [lat, lng, ratings]
       properties:
-        userId: { type: string }
         groupId: { type: ["string", "null"] }
         lat: { type: number }
         lng: { type: number }

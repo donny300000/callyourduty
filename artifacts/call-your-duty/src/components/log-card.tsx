@@ -65,7 +65,7 @@ export function LogCard({ log }: { log: PoopLog }) {
 }
 
 function LogDetailDialog({ open, onOpenChange, logId }: { open: boolean, onOpenChange: (open: boolean) => void, logId: string }) {
-  const { userId } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { data: log, isLoading } = useGetLog(logId, { query: { enabled: open, queryKey: getGetLogQueryKey(logId) } });
@@ -76,8 +76,8 @@ function LogDetailDialog({ open, onOpenChange, logId }: { open: boolean, onOpenC
     deleteLog.mutate({ logId: log.id }, {
       onSuccess: () => {
         onOpenChange(false);
-        queryClient.invalidateQueries({ queryKey: getListLogsQueryKey({ userId: userId! }) });
-        queryClient.invalidateQueries({ queryKey: getGetUserSummaryQueryKey(userId!) });
+        queryClient.invalidateQueries({ queryKey: getListLogsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetUserSummaryQueryKey(user!.id) });
         if (log.groupId) {
           queryClient.invalidateQueries({ queryKey: getListGroupLogsQueryKey(log.groupId) });
           queryClient.invalidateQueries({ queryKey: getGetGroupLeaderboardQueryKey(log.groupId) });
@@ -142,7 +142,7 @@ function LogDetailDialog({ open, onOpenChange, logId }: { open: boolean, onOpenC
               </div>
             )}
 
-            {log.userId === userId && (
+            {log.userId === user?.id && (
               <Button 
                 variant="destructive" 
                 className="w-full h-12 font-bold rounded-xl gap-2 mt-4" 

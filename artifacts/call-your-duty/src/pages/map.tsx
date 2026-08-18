@@ -33,8 +33,7 @@ const customIcon = new L.Icon({
 });
 
 export default function MapPage() {
-  const { userId } = useAuth();
-  const { data: logs } = useListLogs({ userId: userId! });
+  const { data: logs } = useListLogs();
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([39.8283, -98.5795]); // US center default
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -135,8 +134,8 @@ function MapClickHandler({ onLocationSelect }: { onLocationSelect: (coords: [num
 }
 
 function LogFormSheet({ open, onOpenChange, position, onSuccess }: { open: boolean, onOpenChange: (o: boolean) => void, position: [number, number] | null, onSuccess: () => void }) {
-  const { userId } = useAuth();
-  const { data: groups } = useListGroups({ userId: userId! });
+  const { user } = useAuth();
+  const { data: groups } = useListGroups();
   const createLog = useCreateLog();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -158,7 +157,6 @@ function LogFormSheet({ open, onOpenChange, position, onSuccess }: { open: boole
 
     createLog.mutate({
       data: {
-        userId: userId!,
         groupId: groupId === "none" ? null : groupId,
         lat: position[0],
         lng: position[1],
@@ -168,8 +166,8 @@ function LogFormSheet({ open, onOpenChange, position, onSuccess }: { open: boole
       }
     }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListLogsQueryKey({ userId: userId! }) });
-        queryClient.invalidateQueries({ queryKey: getGetUserSummaryQueryKey(userId!) });
+        queryClient.invalidateQueries({ queryKey: getListLogsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetUserSummaryQueryKey(user!.id) });
         if (groupId !== "none") {
           queryClient.invalidateQueries({ queryKey: getGetGroupLeaderboardQueryKey(groupId) });
           queryClient.invalidateQueries({ queryKey: getListGroupLogsQueryKey(groupId) });

@@ -18,19 +18,63 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * @summary Create or claim a user profile
+ * @summary Create an account and start a session
  */
-export const createUserBodyNameMax = 40;
+export const signupBodyNameMax = 40;
+
+export const signupBodyPasswordMin = 4;
 
 
 
-export const CreateUserBody = zod.object({
-  "name": zod.string().min(1).max(createUserBodyNameMax)
+export const SignupBody = zod.object({
+  "name": zod.string().min(1).max(signupBodyNameMax),
+  "email": zod.string().email(),
+  "password": zod.string().min(signupBodyPasswordMin)
 })
 
-export const CreateUserResponse = zod.object({
+export const SignupResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
+  "email": zod.string().email(),
+  "avatarColor": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Log in and start a session
+ */
+export const loginBodyPasswordMin = 4;
+
+
+
+export const LoginBody = zod.object({
+  "email": zod.string().email(),
+  "password": zod.string().min(loginBodyPasswordMin)
+})
+
+export const LoginResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string().email(),
+  "avatarColor": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary End the current session
+ */
+export const LogoutResponse = zod.void()
+
+
+/**
+ * @summary Get the currently authenticated user
+ */
+export const GetCurrentUserResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string().email(),
   "avatarColor": zod.string(),
   "createdAt": zod.coerce.date()
 })
@@ -46,6 +90,7 @@ export const GetUserParams = zod.object({
 export const GetUserResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
+  "email": zod.string().email(),
   "avatarColor": zod.string(),
   "createdAt": zod.coerce.date()
 })
@@ -68,12 +113,8 @@ export const GetUserSummaryResponse = zod.object({
 
 
 /**
- * @summary List groups a user belongs to
+ * @summary List groups the current user belongs to
  */
-export const ListGroupsQueryParams = zod.object({
-  "userId": zod.coerce.string()
-})
-
 export const ListGroupsResponseItem = zod.object({
   "id": zod.string(),
   "name": zod.string(),
@@ -92,8 +133,7 @@ export const createGroupBodyNameMax = 40;
 
 
 export const CreateGroupBody = zod.object({
-  "name": zod.string().min(1).max(createGroupBodyNameMax),
-  "userId": zod.string()
+  "name": zod.string().min(1).max(createGroupBodyNameMax)
 })
 
 export const CreateGroupResponse = zod.object({
@@ -109,8 +149,7 @@ export const CreateGroupResponse = zod.object({
  * @summary Join a group via invite code
  */
 export const JoinGroupBody = zod.object({
-  "inviteCode": zod.string(),
-  "userId": zod.string()
+  "inviteCode": zod.string()
 })
 
 export const JoinGroupResponse = zod.object({
@@ -203,12 +242,8 @@ export const GetGroupLeaderboardResponse = zod.array(GetGroupLeaderboardResponse
 
 
 /**
- * @summary List a user's own poop logs
+ * @summary List the current user's own poop logs
  */
-export const ListLogsQueryParams = zod.object({
-  "userId": zod.coerce.string()
-})
-
 export const listLogsResponseRatingsSpeedMax = 5;
 
 export const listLogsResponseRatingsComfortMax = 5;
@@ -260,7 +295,6 @@ export const createLogBodyRatingsReliefMax = 5;
 
 
 export const CreateLogBody = zod.object({
-  "userId": zod.string(),
   "groupId": zod.string().nullish(),
   "lat": zod.number(),
   "lng": zod.number(),
